@@ -1,0 +1,634 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% a0poster Portrait Poster
+% LaTeX Template
+% Version 1.0 (22/06/13)
+%
+% The a0poster class was created by:
+% Gerlinde Kettl and Matthias Weiser (tex@kettl.de)
+% 
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%       PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[a0,portrait]{a0poster}
+
+\usepackage{multicol} % This is so we can have multiple columns of text side-by-side
+
+\usepackage[svgnames]{xcolor} % Specify colors by their 'svgnames', for a full list of all colors available see here: http://www.latextemplates.com/svgnames-colors
+
+%\usepackage{times} % Use the times font
+%\usepackage{palatino} % Palatino font
+\usepackage{newcent} % New century schoolbook
+
+\usepackage{graphicx} % Required for including images
+\graphicspath{{figures/}} % Location of the graphics files
+\usepackage{booktabs} % Top and bottom rules for table
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+\usepackage{amsfonts, amsmath, amsthm, amssymb} % For math fonts, symbols and environments
+\usepackage{wrapfig} % Allows wrapping text around tables and figures
+\usepackage{pstricks}
+\usepackage{pst-plot}
+\usepackage{xcolor}
+
+\usepackage{framed, color}
+\colorlet{shadecolor}{Orange!60}
+\usepackage{float}
+
+\usepackage{geometry}
+\geometry{
+    a0paper,
+    top=4cm,
+    bottom=2cm,
+    left=7cm,
+    right=2cm
+}
+\setlength{\marginparwidth}{0pt}
+
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+\DeclareMathOperator*{\expect}{\mathbb{E}}
+\DeclareMathOperator*{\var}{\mathrm{Var}}
+
+%\definecolor{bgcolor}{HTML}{FFF8DC} % Corn silk
+%\definecolor{bgcolor}{HTML}{FFFAFA} % Snow
+%\definecolor{bgcolor}{HTML}{FFFAF0} % Floral white
+%\definecolor{bgcolor}{HTML}{F3ECDA} % Some type of slate
+%\definecolor{color1dark}{HTML}{408c65} % Teal
+%\definecolor{color1bright}{HTML}{b2e6cb} % Teal
+
+% Blues
+%\definecolor{bgcolor}{HTML}{dee7ee}
+%\definecolor{color1dark}{HTML}{2A3132}
+%\definecolor{color1bright}{HTML}{A6BFD1}
+
+% Offwhite background with teal and orange
+%\definecolor{bgcolor}{HTML}{FBF9F4}
+\definecolor{bgcolor}{HTML}{F6F2E8}
+%\definecolor{bgcolor}{HTML}{F3EDDA}
+\definecolor{textcolor}{HTML}{65635d}
+\definecolor{brighttextcolor}{HTML}{C9C8C5}
+%\definecolor{emphtextcolor}{HTML}{1e1e1c}
+\definecolor{emphtextcolor}{HTML}{000000}
+\definecolor{color1dark}{HTML}{20948B}
+\definecolor{color1bright}{HTML}{B2E6CB}
+\definecolor{color2bright}{HTML}{FFB9A3}
+
+\columnsep=150pt % This is the amount of white space between the columns in the poster
+\columnseprule=0.5pt % This is the thickness of the black line between the columns in the poster
+\renewcommand{\columnseprulecolor}{\color{textcolor}}
+
+\DeclareCaptionFont{captiontitlecolor}{\color{emphtextcolor}}
+\DeclareCaptionFont{captiontextcolor}{\color{textcolor}}
+\captionsetup{labelfont={captiontitlecolor}, textfont={captiontextcolor}}
+
+\newcommand{\COMMENTOUT}[1]{}
+\newcommand{\x}{{\bf x}}
+\renewcommand{\emph}[1]{{\color{emphtextcolor}#1}}
+\newcommand{\simiid}{\overset{i.i.d.}{\sim}}
+\newcommand{\ntoinf}{n \rightarrow \infty}
+\newcommand{\pr}[1]{\Pr \left[ #1 \right]}
+
+
+\newcommand{\framedblock}[1]{\begin{framed}#1\end{framed}}
+\newcommand{\shadedblock}[1]{\begin{shaded}#1\end{shaded}}
+%\newcommand{\orangeblock}[1]{\colorlet{shadecolor}{Orange!60} \shadedblock{#1}}
+\newcommand{\blueblock}[1]{
+    \colorlet{shadecolor}{Blue!10}
+    \shadedblock{#1}
+}
+\newcommand{\grayblock}[1]{
+    \colorlet{shadecolor}{Grey!25}
+    \shadedblock{#1}
+}
+\newcommand{\yellowblock}[1]{
+    \colorlet{shadecolor}{Yellow!35}
+    \shadedblock{#1}
+}
+\newcommand{\centered}[1]{\begin{center}#1\end{center}}
+
+\newcommand{\theoremblock}[1]{\blueblock{\noindent \emph{Theorem.} #1}}
+\newcommand{\lemmablock}[1]{\colorlet{shadecolor}{color1bright}\shadedblock{\noindent \emph{Lemma.}#1}}
+\newcommand{\emphblock}[1]{\colorlet{shadecolor}{color2bright}\shadedblock{\noindent #1}}
+\newcommand{\sectiontitle}[1]{\section*{\huge \color{textcolor}#1}}
+
+\newtheorem{definition}{Definition}[section] 
+\newtheorem{theorem}{Theorem}[section] 
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}{Remark}[section]
+\newtheorem{example}{Example}
+
+\begin{document}
+
+\pagecolor{bgcolor}
+%----------------------------------------------------------------------------------------
+%       POSTER HEADER 
+%----------------------------------------------------------------------------------------
+
+% The header is divided into two boxes:
+% The first is 75% wide and houses the title, subtitle, names, university/organization and contact information
+% The second is 25% wide and houses a logo for your university/organization or a photo of you
+% The widths of these boxes can be easily edited to accommodate your content as you see fit
+\begin{minipage}[b]{0.799\linewidth}\ \end{minipage}
+\begin{minipage}[b]{0.5\linewidth}
+\includegraphics[width=15cm]{wiz_logo1-01.pdf}\\
+\end{minipage}
+%\color{color1dark}
+\color{textcolor}
+\noindent {\fontsize{121}{140}\selectfont Fast computation of boundary crossing probabilities for the empirical CDF\\\\
+%\noindent \VeryHuge{Boundary crossing probabilities for the empirical CDF}\\[0.3cm]
+%%\noindent {\VERYHuge Fast algorithms for computing p-values of sup-type goodness of fit statistics}\\[1.8cm]
+%\noindent {\fontsize{106}{120}\selectfont Fast algorithms for computing the boundary crossing probability of the empirical CDF}
+%\noindent {\fontsize{85}{96}\selectfont The boundary crossing probability of the empirical CDF}\\[0.3cm]
+%\noindent {\fontsize{85}{96}\selectfont Boundary crossing probabilities for the empirical CDF}\\[0.3cm]
+%\noindent \Huge{fast algorithms for exact computation and their statistical applications}\\[0.8cm]
+\color{textcolor} \large \textbf{Amit Moscovich-Eiger, Boaz Nadler}, Weizmann Institute of Science, Israel.\\
+amit.moscovich@weizmann.ac.il; boaz.nadler@weizmann.ac.il\\
+
+% \begin{minipage}[b]{0.55\linewidth}
+%     \VeryHuge \color{NavyBlue} \textbf{Tail-sensitive goodness-of-fit}\\
+%     \color{Black} % Title
+%     \Huge{The Calibrated Kolmogorov-Smirnov test} % Subtitle
+%     %\\[3cm] 
+%     %\Large \textbf{Amit Moscovich Eiger, Boaz Nadler}\quad \Large Weizmann Institute of Science\\[0.4cm] % University/organization
+%     %\Large \textbf{Clifford Spiegelman} \quad \Large Texas A\&M University\\[0.4cm] % University/organization
+% \end{minipage}
+% \begin{minipage}{0.5\linewidth}
+%     \large \textbf{Amit Moscovich Eiger, Boaz Nadler}\ \large Weizmann Institute of Science\\[0.4cm]
+% % University/organization
+%     \large \textbf{Clifford Spiegelman} \ \large Texas A\&M University\\[0.8cm] % University/organization
+% \end{minipage}
+
+%\vspace{2cm} % A bit of extra whitespace between the header and poster content
+\normalsize
+%----------------------------------------------------------------------------------------
+
+\begin{multicols}{2} % This is how many columns your poster will be broken into, a portrait poster is generally split into 2 columns
+\large % Main text size.
+
+%----------------------------------------------------------------------------------------
+\sectiontitle{Problem setup}
+
+Let $\hat{F}_n$ be the empirical CDF of $n$ draws from $U[0,1]$ w.l.o.g.
+Given two functions $g, h:\mathbb{R} \to \mathbb{R}$,
+compute the non-crossing probability
+\begin{align} \label{eq:pr_cdf_no_cross}
+    \pr{\forall t: g(t) < \hat{F}_n(t) < h(t)}
+\end{align}
+\emph{Several algorithms have been proposed over the years, all are $O(n^3)$.} [Epanechnikov 1968, Steck 1971, No\'e 1972, Friedrich \& Schellhaas 1998, Khmaladze \& Shinjikashvili 2001].
+\subsection*{Equivalent formulation}
+Let $U_{1:n} \le U_{2:n} \le \ldots \le U_{n:n}$ be the order statistics of $n$ draws from $U[0,1]$.
+Given arbitrary bounds $b_1, \ldots, b_n, B_1, \ldots, B_n \in \mathbb{R}$ compute the probability
+\begin{align} \label{eq:equivalent_formulation}
+    \pr{\forall i: b_i < U_{i:n} < B_i}.
+\end{align}
+%----------------------------------------------------------------------------------------
+\sectiontitle{Two-sided $O(n^3)$ algorithm [F\&S 1998]}
+\lemmablock{
+    $\hat{F}_n$
+    satisfies $g(t) < \hat{F}_n(t) < h(t)$ for all $t$ if and only if it satisfies
+    these inequalities at all times when $n \cdot g(t)$ or $n \cdot h(t)$ cross an integer.
+}
+\emph{Definition.} For any $s \in [0,1]$ and any $ m \in \{0, 1, 2, \ldots\}$, let
+%$R(s,m)$ be the probability that $\hat{F}_n(s) = m/n$
+%and that $\hat{F}_n(t)$  does not cross the boundaries $g(t), h(t)$ up to time $s$. i.e.
+\[
+    R(s,m) := \pr{\forall t \in [0,s]: g(t) < \hat{F}_n(t) < h(t) \text{ and } \hat{F}_n(s) = \tfrac{m}{n}}.
+\]\\[-1.2cm]
+\emph{Recursion relations.}
+Let $0 = t_0 \le t_1 \le \ldots \le t_N = 1$ denote the sorted set of integer-crossing times of
+$n \cdot g(t)$ and $n \cdot h(t)$.
+%and let $Z_{\ell,i} \sim \text{Binomial}(n-\ell, \tfrac{t_{i+1} - t_i}{1-t_i})$.
+The Chapman-Kolmogorov equations give the  recursion  relations of \cite{FriedrichSchellhaas1998}:
+\begin{align*} \label{eq:Rsm}
+    R(t_{i+1},m)
+    =
+    \begin{cases}
+        \sum_{\ell} R(t_i, \ell) \cdot \pr{(t_i, \ell) \to (t_{i+1}, m)} & \text{if } g(t_{i+1}) < m/n < h(t_{i+1}) \\
+        0 & \text{otherwise.}
+    \end{cases}
+\end{align*}
+where $\pr{(t_i, \ell) \to (t_{i+1}, m)} = \pr{\text{Binomial}(n-\ell, \tfrac{t_{i+1} - t_i}{1-t_i}) = m-\ell}$.
+\\
+\emph{Solution.} Eq. \eqref{eq:pr_cdf_no_cross} is equal to $R(1,n)$, which can be computed in $O(n^3)$.\\
+
+\begin{center}
+    \begin{pspicture*}(-1,-1)(16,8)
+        \psframe(0,0)(16,8)
+
+        \psgrid[gridlabels=0, subgriddiv=0, gridcolor=black!20](0,0)(16,8)
+        
+        \psset{fillcolor=color2bright, fillstyle=solid, fillcolor=brighttextcolor}
+        \pscurve(0,1.5)(10,5)(14,10)(0,8)
+        \pscurve(5,0)(25,4)(16,0)
+        
+        \psset{linecolor=textcolor, linewidth=4pt, fillstyle=none}
+        \psline(0,0)(0.78,0)(0.78,1)(3.4,1)(3.4,2)(7.5,2)(7.5,3)(8.57,3)(8.57,4)(9.42,4)(9.42,5)(11,5)(11,6)(13.96,6)(13.96,7)(15.58,7)(15.58,8)(16,8)
+
+        % Y axis labels
+        \rput(-0.5,0.13){\tiny $0$}
+        \rput(-0.5,1){\tiny $1/8$}
+        \rput(-0.5,2){\tiny $2/8$}
+        \rput(-0.5,3){\tiny $3/8$}
+        \rput(-0.5,4){\tiny $4/8$}
+        \rput(-0.5,5){\tiny $5/8$}
+        \rput(-0.5,6){\tiny $6/8$}
+        \rput(-0.5,7){\tiny $7/8$}
+        \rput(-0.5,7.85){\tiny $1$}
+
+        % Y axis ticks
+        \psset{linecolor=black, linewidth=1pt}
+        \qline(-0.1,0.02)(0.1,0.02)
+        \qline(-0.1,1)(0.1,1)
+        \qline(-0.1,2)(0.1,2)
+        \qline(-0.1,3)(0.1,3)
+        \qline(-0.1,4)(0.1,4)
+        \qline(-0.1,5)(0.1,5)
+        \qline(-0.1,6)(0.1,6)
+        \qline(-0.1,7)(0.1,7)
+        \qline(-0.1,8)(0.1,8)
+   
+        % X axis labels     
+        \rput(0,-0.5){\tiny $t_0$}
+        \rput(2.2,-0.5){\tiny $t_1$}
+        \rput(5,-0.5){\tiny $t_2$}
+        \rput(5.6,-0.5){\tiny $t_3$}
+        \rput(7.05,-0.5){\tiny $t_4$}
+        \rput(8.2,-0.5){\tiny $t_5$}
+        \rput(9.25,-0.5){\tiny $t_6$}
+        \rput(10,-0.5){\tiny $t_7$}
+        \rput(11.32,-0.5){\tiny $t_8$}
+        \rput(11.75,-0.5){\tiny $t_9$}
+        \rput(12.7,-0.5){\tiny $t_{10}$}
+        \rput(13.65,-0.5){\tiny $t_{11}$}
+        \rput(14.3,-0.5){\tiny $t_{12}$}
+        \rput(15.83,-0.5){\tiny $t_N$}
+        
+        % X axis ticks
+        \psset{linecolor=black, linewidth=1pt}
+        \qline(0,-0.1)(0,0.1)
+        \qline(2.2,-0.1)(2.2,0.1)
+        \qline(5,-0.1)(5,0.1)
+        \qline(5.6,-0.1)(5.6,0.1)
+        \qline(7.05,-0.1)(7.05,0.1)
+        \qline(8.2,-0.1)(8.2,0.1)
+        \qline(9.25,-0.1)(9.25,0.1)
+        \qline(10,-0.1)(10,0.1)
+        \qline(11.42,-0.1)(11.42,0.1)
+        \qline(11.65,-0.1)(11.65,0.1)
+        \qline(12.7,-0.1)(12.7,0.1)
+        \qline(13.65,-0.1)(13.65,0.1)
+        \qline(14.3,-0.1)(14.3,0.1)
+        \qline(16,-0.1)(16,0.1)
+  
+        \psset{fillcolor=black, fillstyle=none, linewidth=0.09, linecolor=black}    
+        %\pscircle(2.2,2){0.3}
+        \qline(2.0,1.8)(2.4,2.2)
+        \qline(2.0,2.2)(2.4,1.8)
+        
+        %\pscircle(5.6,3){0.3}
+        \qline(5.42,2.8)(5.82,3.2)
+        \qline(5.42,3.2)(5.82,2.8)
+        
+        %\pscircle(8.2,4){0.3}
+        \qline(8.01,3.8)(8.41,4.2)
+        \qline(8.01,4.2)(8.41,3.8)
+        
+        %\pscircle(10,5){0.2}
+        \qline(9.8,4.8)(10.2,5.2)
+        \qline(9.8,5.2)(10.2,4.8)
+        
+        %\pscircle(11.42,6){0.2}
+        \qline(11.22,5.8)(11.62,6.2)
+        \qline(11.22,6.2)(11.62,5.8)
+        
+        %\pscircle(12.7,7){0.1}
+        \qline(12.5,6.8)(12.9,7.2)
+        \qline(12.5,7.2)(12.9,6.8)
+        
+        %\pscircle(13.65,8){0.3}
+        \qline(13.45,7.8)(13.85,8.2)
+        \qline(13.45,8.2)(13.85,7.8)
+        
+        %\pscircle(5,0){0.3}
+        \qline(4.8,-0.2)(5.2,0.2)
+        \qline(4.8,0.2)(5.2,-0.2)
+        
+        %\pscircle(7.05,1){0.3}
+        \qline(6.85,0.8)(7.25,1.2)
+        \qline(6.85,1.2)(7.25,0.8)
+                
+        %\pscircle(9.25,2){0.3}
+        \qline(9.05,1.8)(9.45,2.2)
+        \qline(9.05,2.2)(9.45,1.8)
+        
+        %\pscircle(11.65,3){0.3}
+        \qline(11.45, 2.8)(11.85, 3.2)
+        \qline(11.45, 3.2)(11.85, 2.8)
+
+        %\pscircle(14.3,4){0.3}
+        \qline(14.1,3.8)(14.5,4.2)
+        \qline(14.1,4.2)(14.5,3.8)
+    \end{pspicture*}
+    \ 
+    \begin{pspicture*}(-1,-1)(16,8)
+        \psframe(0,0)(16,8)
+
+        \psgrid[gridlabels=0, subgriddiv=0, gridcolor=black!20](0,0)(16,8)
+
+        \psset{fillcolor=color2bright, fillstyle=solid, fillcolor=brighttextcolor}
+        \pscurve(0,1.5)(10,5)(14,10)(0,8)
+        \pscurve(5,0)(25,4)(16,0)
+
+        % X axis labels     
+        \rput(0,-0.5){\tiny $t_0$}
+        \rput(2.2,-0.5){\tiny $t_1$}
+        \rput(5,-0.5){\tiny $t_2$}
+        \rput(5.6,-0.5){\tiny $t_3$}
+        \rput(7.05,-0.5){\tiny $t_4$}
+        \rput(8.2,-0.5){\tiny $t_5$}
+        \rput(9.25,-0.5){\tiny $t_6$}
+        \rput(10,-0.5){\tiny $t_7$}
+        \rput(11.32,-0.5){\tiny $t_8$}
+        \rput(11.75,-0.5){\tiny $t_9$}
+        \rput(12.7,-0.5){\tiny $t_{10}$}
+        \rput(13.65,-0.5){\tiny $t_{11}$}
+        \rput(14.3,-0.5){\tiny $t_{12}$}
+        \rput(15.83,-0.5){\tiny $t_N$}
+        
+        % X axis ticks
+        \psset{linecolor=black, linewidth=1pt}
+        %\qline(0,-0.1)(0,0.1)
+        %\qline(2.2,-0.1)(2.2,0.1)
+        %\qline(5,-0.1)(5,0.1)
+        \qline(5.6,-0.1)(5.6,0.1)
+        \qline(7.05,-0.1)(7.05,0.1)
+        \qline(8.2,-0.1)(8.2,0.1)
+        \qline(9.25,-0.1)(9.25,0.1)
+        \qline(10,-0.1)(10,0.1)
+        \qline(11.42,-0.1)(11.42,0.1)
+        \qline(11.65,-0.1)(11.65,0.1)
+        \qline(12.7,-0.1)(12.7,0.1)
+        \qline(13.65,-0.1)(13.65,0.1)
+        \qline(14.3,-0.1)(14.3,0.1)
+        \qline(16,-0.1)(16,0.1)
+
+        \psset{fillcolor=textcolor, fillstyle=solid, linewidth=1pt, linecolor=black}    
+
+        \psset{fillstyle=solid}
+        \pscircle(0,0){0.15}
+
+        \psline[arrowsize=0.3]{->}(0.2,0.03)(2,0.03)
+        \psline[arrowsize=0.3]{->}(0.2,0.1)(2,0.9)
+        
+        \psset{fillstyle=solid}
+        \pscircle(2.2,0.0){0.15}
+        \pscircle(2.2,1){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(2.2,2){0.15}
+
+        \psline[arrowsize=0.3]{->}(2.4,0.08)(4.8,0.9)
+        \psline[arrowsize=0.3]{->}(2.4,0.16)(4.8,1.8)
+        \psline[arrowsize=0.3]{->}(2.4,1)(4.8,1)
+        \psline[arrowsize=0.3]{->}(2.4,1.06)(4.8,1.95)
+
+
+        \psset{fillstyle=none}    
+        \pscircle(5,0){0.15}
+        \psset{fillstyle=solid}
+        \pscircle(5,1){0.15}
+        \pscircle(5,2){0.15}
+
+        \psset{fillstyle=solid}
+        \pscircle(5.6,1){0.15}
+        \pscircle(5.6,2){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(5.6,3){0.15}
+
+        \psset{fillstyle=none}    
+        \pscircle(7.05,1){0.15}
+        \psset{fillstyle=solid}
+        \pscircle(7.05,2){0.15}
+        \pscircle(7.05,3){0.15}
+
+        \pscircle(8.2,2){0.15}
+        \pscircle(8.2,3){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(8.2,4){0.15}
+
+        \psset{fillstyle=none}    
+        \pscircle(9.25,2){0.15}
+        \psset{fillstyle=solid}
+        \pscircle(9.25,3){0.15}
+        \pscircle(9.25,4){0.15}
+
+        \psset{fillstyle=solid}
+        \pscircle(10,3){0.15}
+        \pscircle(10,4){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(10,5){0.15}
+
+        \psset{fillstyle=solid}
+        \pscircle(11.42,3){0.15}
+        \pscircle(11.42,4){0.15}
+        \pscircle(11.42,5){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(11.65,3){0.15}
+        \psset{fillstyle=solid}
+        \pscircle(11.65,4){0.15}
+        \pscircle(11.65,5){0.15}
+        \pscircle(11.65,6){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(11.42,6){0.15}
+
+        \psset{fillstyle=solid}
+        \pscircle(12.7,4){0.15}
+        \pscircle(12.7,5){0.15}
+        \pscircle(12.7,6){0.15}
+        \psset{fillstyle=none}    
+        \pscircle(12.7,7){0.15}
+
+        \psset{fillstyle=none}    
+        \pscircle(13.65,8){0.15}
+        \psset{fillstyle=solid}
+        \pscircle(13.65,7){0.15}
+        \pscircle(13.65,6){0.15}
+        \pscircle(13.65,5){0.15}
+        \pscircle(13.65,4){0.15}
+
+        \psset{fillstyle=none}    
+        \pscircle(14.3,4){0.15}
+        \psset{fillstyle=solid}
+        \pscircle(14.3,5){0.15}
+        \pscircle(14.3,6){0.15}
+        \pscircle(14.3,7){0.15}
+        \pscircle(14.3,8){0.15}
+
+        \psset{fillstyle=solid}
+        \pscircle(16,5){0.15}
+        \pscircle(16,6){0.15}
+        \pscircle(16,7){0.15}
+        \pscircle(16,8){0.15}
+
+    \end{pspicture*}
+    \captionof{figure}{(left panel) \emph{x} marks the $i/n$ crossing points.
+    $\hat{F}_n$ crosses one of the boundaries if and only if it crosses an \emph{x} mark;
+    (right panel) Layer graph representing the entries $R(t_i, m)$.}
+\end{center}
+%----------------------------------------------------------------------------------------
+\sectiontitle{Two-sided $O(n^3)$ algorithm [K\&S 2001]}
+\lemmablock{ The distribution of the stochastic process $n \cdot \hat{F}_n(t)$ is identical to that of a Poisson process $\xi_n(t)$ with intensity $n$  conditioned on $\xi_n(1) = n$.
+}
+\noindent \emph{Definition.} For any $s \in [0,1]$ and any $ m \in \{0, 1, 2, \ldots\}$, let
+%$Q(s,m)$ be the probability that $\xi_n(s) = m$
+%and that the scaled Poisson process $\tfrac1n \xi_n$ does not cross the boundaries $g(t), h(t)$ up to time $s$. i.e.
+\[
+    Q(s,m) := \pr{\forall t \in [0,s]: g(t) < \tfrac1n \xi_n(t) < h(t) \text{ and } \xi_n(s) = m}.
+\]\\[-1.2cm]
+\emph{Recursion relations.}
+Similarly to the previous algorithm, the Chapman-Kolmogorov equations give
+the recursive relations of \cite{KhmaladzeShinjikashvili2001}:
+\begin{align*}
+    Q(t_{i+1},m)
+    =
+    \begin{cases}
+        \sum_{\ell} Q(t_i, \ell) \cdot\pr{Z_i = m-\ell} & \text{ if } g(t_{i+1}) < m/n < h(t_{i+1}) \\
+        0 & \text{otherwise}
+    \end{cases}
+\end{align*}
+where $Z_i$ is a Poisson random variable with intensity $n(t_{i+1} - t_i)$.\\
+\emph{Solution.} Apply the lemma
+to obtain 
+\begin{align*}
+    \pr{\forall t: g(t) < \hat{F}_n(t) < h(t)}
+    &=
+    Q(1,n) / \pr{\text{Poisson}(n)=n}.
+\end{align*}
+Computing Q(1,n) still requires $O(n^3)$ operations.
+%----------------------------------------------------------------------------------------
+\sectiontitle{New two-sided $O(n^2 \log n)$ algorithm}
+Denote $Q_{t_i} = (Q(t_i,0), \ldots, Q(t_i,n))$ and $ \pi_\lambda = (\pr{Z_\lambda = 0}, \ldots, \pr{Z_\lambda = n})$
+where $Z_\lambda$ is a Poisson random variable with expected value $\lambda$.
+\emphblock{\emph{Key idea:} the vector $Q_{t_{i+1}}$ is nothing but a truncated linear convolution of  $Q_{t_i}$ and $\pi_{n(t_{i+1}-t_i)}$.
+    Hence, using the circular convolution theorem and the Fast Fourier Transform
+    we can compute $Q_{t_{i+1}}$ in $O(n \log n)$ time.
+}
+
+\begin{enumerate}
+    \item Append $n$ zeros to the end of $Q_{t_i}$ and $\pi_{n(t_{i+1}-t_i)}$,
+    forming $Q^{2n}$ and $\pi^{2n}$.
+    \item Compute the FFT $\mathcal{F}\{Q^{2n}\}$ and $\mathcal{F}\{\pi^{2n}\}$.
+    \item Apply the convolution theorem
+    \(
+        C^{2n} = \mathcal{F}\{Q^{2n} \star \pi^{2n}\} = \mathcal{F} \{ Q^{2n}\} \cdot \mathcal{F}\{\pi^{2n}\},
+    \)
+    where $\star$ denotes cyclic convolution and $\cdot$ is pointwise multiplication.
+    \item Compute the inverse Fourier transform of $C^{2n}$ to obtain the vector $Q_{t_{i+1}}$
+    \begin{align*}
+        Q_{t_{i+1}}(m) =
+        \begin{cases}
+            \mathcal{F}^{-1}\{C^{2n}\}(m) & \text{if }  g(t_{i+1}) < m/n < h(t_{i+1}) \\
+            0 & \text{otherwise}.
+        \end{cases}
+    \end{align*}
+\end{enumerate}
+Repeating this procedure for all $i$ yields a total running time of $O(n^2 \log n)$.
+\emph{This is the fastest known algorithm for computing the two-sided crossing probability and the first to break the $O(n^3)$ barrier.}
+
+%------------------------------------------------
+\sectiontitle{New one-sided $O(n^2)$ algorithm}
+In the one-sided case ($g<0$ or $h>1$) an even faster algorithm is possible. 
+The joint density of the random vector of uniform order statistics is
+\[
+    f(U_{1:n}, \ldots, U_{n:n}) = 
+    \left\{\begin{array}{ll}
+        n! & \mbox{if } 0 \le U_{1:n} \le \ldots \le U_{n:n} \le 1, \\
+        0  & \mbox{otherwise}. \\
+    \end{array}
+    \right.
+\]
+Hence the one-sided variant of Eq. \eqref{eq:equivalent_formulation} is given by
+\begin{align*}
+    \pr{\forall i: b_i < U_{i:n}}
+    &=
+    n!Vol\{ (U_{1:n}, \ldots, U_{n:n}) \ |\ \forall i: b_i < U_{i:n} \le U_{i+1:n}\} \nonumber \\
+    &=  \displaystyle n! \int_{b_n}^1 dU_{n:n} \int_{b_{n-1:n}}^{U_{n:n}} dU_{(n-1)} \ldots \int_{b_2}^{U_{3:n}} dU_{2:n} \int_{b_1}^{U_{2:n}} dU_{1:n} \,.
+\end{align*}
+Numerically evaluating this integral from right to left takes \(O(n^{2})\) time.
+A na\"ive implementation fails at $n \approx 150$ due to  numerical errors,
+but with some effort we have been able to get up to $n \approx 50,000$. \cite{MoscovichEigerNadlerSpiegelman2015}
+
+%------------------------------------------------
+\sectiontitle{Application: p-value computation for goodness-of-fit statistics}
+%\lemmablock{ This probability is equal to Eq. \eqref{eq:pr_cdf_no_cross}
+%where $g(t)$ and $h(t)$ are taken to be the empirical CDFs of $\{B_1, \ldots, B_n\}$ and $\{b_1, \ldots, b_n\}$ respectively.
+%}
+\noindent The p-value of several sup-type continuous goodness-of-fit statistics directly translates to a probability
+of the form of Eq. \eqref{eq:pr_cdf_no_cross}.
+Hence we can compute such $p$-values in $O(n^2 \log n)$ time.
+The following table demonstrates that this improvement is not merely theoretical but yields a significant reduction
+in running times.\\
+\begin{center}
+    \centering
+    \framedblock{
+        \begin{tabular}{c c c c c} 
+            \emph{Two-sided}    & $n=4000$ & $n=16,000$ & $n=64,000$ & $n=256,000$ \\ \hline
+            \emph{K\&S 2001}          & 0.5 sec  & 8 sec      &  94 sec    & 18 minutes  \\
+            \emph{$O(n^2 \log n)$ algorithm}         & 0.3 sec  & 2 sec      &  15 sec    & 117 sec \\[0.5cm]
+            \emph{One-sided}&  \\\hline
+            \emph{K\&S 2001}          & 45 sec   & 24 minutes & 18 hours   & weeks \\
+            \emph{$O(n^2 \log n)$ algorithm}         & 2 sec    & 29 sec     & 9 minutes  & 3 hours\\
+            \emph{$O(n^2)$ algorithm} & 1.3 sec  & 19 sec     & n/a        & n/a 
+        \end{tabular}
+    }
+    \captionof{table}{Running times for computing $p$-values of the  $M_n$ goodness-of-fit statistics of Berk \& Jones.}
+    \label{tbl:running_times}
+\end{center}
+
+%----------------------------------------------------------------------------------------
+%\vspace{1cm}
+%\section*{\color{black}\huge Applications}
+%\begin{itemize}
+%    \item Construction of confidence bands for empirical CDFs
+%    \item Changepoint detection
+%    \item Sequential testing
+%    \item Brownian motion
+%    \item Queuing theory 
+%\end{itemize}
+%----------------------------------------------------------------------------------------
+\sectiontitle{Summary}
+\emphblock{
+\begin{itemize}
+    \item State-of-the-art $O(n^2 \log n)$ algorithm for computing the two-sided crossing probability of empirical CDFs and Poisson processes.
+    \item Fast $O(n^2)$ algorithm for the one-sided case.
+    \item Potential applications include: p-value and power calculations for goodness-of-fit statistics, construction of $\alpha$-level confidence bands for distribution functions,  analysis of boundary crossing and first passage of a Brownian motion, queuing theory, sequential testing... 
+    \item Efficient C++ code at: {\color{blue} http://www.wisdom.weizmann.ac.il/\textasciitilde amitmo}
+\end{itemize}
+}
+
+%----------------------------------------------------------------------------------------
+%\sectiontitle{Supporting material}
+%The $O(n^2 \log n)$ algorithm is described in \cite{MoscovichEigerNadler2015}.
+%For the one-sided $O(n^2)$ algorithm see Section 5 and Appendix C of \cite{MoscovichEigerNadlerSpiegelman2015}.
+%Efficient C++ implementations are available at: {\color{blue} http://www.wisdom.weizmann.ac.il/\textasciitilde amitmo}
+%----------------------------------------------------------------------------------------
+\nocite{*} % Print all references regardless of whether they were cited in the poster or not
+\normalsize
+\bibliographystyle{unsrt} % Plain referencing style
+%\bibliographystyle{elsarticle-num-names}
+\bibliography{crossing-probability}
+
+
+
+%----------------------------------------------------------------------------------------
+
+\end{multicols}
+\end{document}
