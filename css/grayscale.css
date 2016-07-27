@@ -128,7 +128,7 @@ a:focus {
   padding: 100px 0;
   text-align: center;
   color: white;
-  background: linear-gradient(to bottom, transparent 0%, black 100%), url(../img/Mostar_Old_Town_Panorama_2007.jpg) no-repeat bottom center scroll;
+  background: linear-gradient(to bottom, transparent 0%, black 100%), url(../img/Mostar_Old_Town_Panorama_2007_recompressed.jpg) no-repeat bottom center scroll;
   background-color: black;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -226,7 +226,7 @@ a:focus {
 }
 
 .transition-section {
-  background: url(../img/downloads-bg.jpg) no-repeat center center scroll;
+  background: url(../img/transition-section-bg.jpg) no-repeat center center scroll;
   background-color: black;
   -webkit-background-size: cover;
   -moz-background-size: cover;
