@@ -262,6 +262,7 @@ a:focus {
   -moz-transition: all 0.3s ease-in-out;
   transition: all 0.3s ease-in-out;
   border-radius: 0;
+  margin-bottom: 10px;
 }
 .network-name {
     font-size: 14px;
