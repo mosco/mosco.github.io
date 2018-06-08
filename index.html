@@ -65,7 +65,7 @@
                         <a class="page-scroll" href="#crossprob">Boundary crossing</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#forestdensity">Forest density</a>
+                        <a class="page-scroll" href="#forestdensity">Forest classification</a>
                     </li>
                 </ul>
             </div>
@@ -325,15 +325,35 @@ probabilities for the empirical CDF</b></a>, poster+oral presentation at the Mac
     <section id="forestdensity" class="container content-section">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2">
-                <h1>Nonparametric classification of forest-structured graphical models</h1>
+                <h1>Classification of Forest Graphical Models</h1>
                 <p>
-                We propose a new nonparametric approach for binary classification that exploits the modeling flexibility of sparse graphical models. We assume that each class can be represented by a family of undirected sparse graphical models, specifically a forest-structured distribution. Our procedure requires the nonparametric estimation of only one and two-dimensional marginal densities to transform the data into a space where a linear classifier is optimal. Experiments with simulated and real data indicate that the proposed method is competitive with popular methods across a range of applications.
+                    Consider the problem of classifying vectors into one of two classes, where both classes
+                    follow different forest-structured undirected graphical models (also known as Markov random fields).
+                </p>
+                <img src="img/simforestplots.svg" class="img-rounded" style="width: 70%; height: auto;  margin-left: auto; margin-right: auto; display: block"><br><br>
+                <p>
+                    We show that the optimal classifier is linear after applying a particular oracle transformation of the feature vectors.
+                    This transformation takes a feature vector <b>x</b> and returns the log of all of the univariate and bivariate densities of the two classes at <b>x</b>.
+
+                    Based on this observation, we propose a classifier that is tailor-made for this scenario.
+                    It first constructs an estimate of the oracle transformation, and then fits a linear SVM classifier
+                    to the transformed data.
+                </p>
+                <p>
+                    We prove convergence of the resulting classifier to an oracle SVM classifier
+                    and give finite sample bounds on its excess risk.                 
+                </p>
+                <p>
+                    Experiments with simulated and real data indicate that the resulting classifier
+                    is competitive with several popular methods across a range of applications.
+                    This is true even on datasets that do not follow the forest assumption.
                 </p>
                 <p>
                     Joint work with Mary Frances Dorn and Clifford Spiegelman of Texas A&amp;M university and Boaz Nadler of the Weizmann institute of science.
                 </p>
+                <h4> Documents </h4>
                 <p>
-                    <b>Paper in preparation.</b>
+                Mary Frances Dorn, Amit Moscovich, Boaz Nadler, Clifford Spiegelman <a href="https://arxiv.org/abs/1806.01993"><b>Semiparametric Classification of Forest Graphical Models</b></a> (submitted).<br>
                 </p>
             </div>
         </div>
