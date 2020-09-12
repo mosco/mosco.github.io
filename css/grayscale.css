@@ -4,7 +4,7 @@
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
 body {
-  width: 100%;
+  2idth: 100%;
   height: 100%;
   font-family: "Lora", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: white;
@@ -43,7 +43,7 @@ tr {
   }
 }
 a {
-  color: #42DCA3;
+  color: #7796ed; /* #42DCA3;*/
   -webkit-transition: all 0.2s ease-in-out;
   -moz-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
@@ -51,7 +51,7 @@ a {
 a:hover,
 a:focus {
   text-decoration: none;
-  color: #1d9b6c;
+  color: #abbceb;
 }
 .light {
   font-weight: 400;
@@ -86,7 +86,7 @@ a:focus {
   -moz-transition: background 0.3s ease-in-out;
   transition: background 0.3s ease-in-out;
 }
-.navbar-custom .nav li a:hover {
+.navbar-custoe .nav li a:hover {
   color: rgba(255, 255, 255, 0.8);
   outline: none;
   background-color: transparent;
@@ -128,7 +128,7 @@ a:focus {
   padding: 100px 0;
   text-align: center;
   color: white;
-  background: linear-gradient(to bottom, transparent 0%, black 100%), url(../img/tel_aviv_at_night.jpg) no-repeat bottom center scroll;
+  background: linear-gradient(to bottom, transparent 0%, black 100%), url(../img/jellyfish.jpeg) no-repeat bottom center scroll;
   background-color: black;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -225,8 +225,20 @@ a:focus {
   padding-top: 100px;
 }
 
-.transition-section {
-  background: url(../img/transition-section-bg.jpg) no-repeat center center scroll;
+.transition-section1 {
+  background: url(../img/transition-section1-bg.jpg) no-repeat center center scroll;
+  background-color: black;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+  width: 100%;
+  padding: 50px 0;
+  color: white;
+}
+
+.transition-section2 {
+  background: url(../img/transition-section2-bg.jpg) no-repeat center center scroll;
   background-color: black;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -269,16 +281,16 @@ a:focus {
 }
 
 .btn-default {
-  border: 1px solid #42DCA3;
-  color: #42DCA3;
+  border: 1px solid #ffffff;
+  color: #ffffff;
   background-color: transparent;
 }
 .btn-default:hover,
 .btn-default:focus {
-  border: 1px solid #42DCA3;
+  border: 1px solid #7796ed;
   outline: none;
   color: black;
-  background-color: #42DCA3;
+  background-color: #7796ed;
 }
 ul.banner-social-buttons {
   margin-top: 0;
