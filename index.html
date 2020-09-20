@@ -135,7 +135,7 @@
                     <br>
                     <br>
                     <br>
-                    <h1>Publications</h1>
+                    <h1>Publications and preprints</h1>
                 </div>
             </div>
         </div>
@@ -144,6 +144,11 @@
     <section class="container content-section">
         <div class="row">
             <div class="col-lg-12 col-lg-offset-0">
+                <p>
+                    Amit Moscovich, Joe Kileel, Nathan Zelesko, Amit Singer.<br>
+                    <i>Wasserstein diffusion maps for learning shape spaces.</i><br>
+                    In preparation for Journal of Fourier Analysis and Applications, special issue on Harmonic Analysis on Graphs.<br>
+                </p>
                 <p>
                     Amit Moscovich.<br>
                     <i>Fast calculation of p-values for one-sided Kolmogorov-Smirnov type statistics.</i><br>
@@ -158,7 +163,7 @@
                 <p>
                     Amit Moscovich, Saharon Rosset.<br>
                     <i>On the cross-validation bias due to unsupervised pre-processing.</i><br>
-                    Under revision for Journal of the Royal Statistical Society Series B (Statistical Methodology).<br>
+                    Under revision for Journal of the Royal Statistical Society Series B.<br>
                     [
                         <a href="https://arxiv.org/abs/1901.08974">paper</a>
                         |
@@ -169,7 +174,7 @@
                 <p>
                     Yaniv Tenzer, Amit Moscovich, Mary-Frances Dorn, Boaz Nadler, Clifford Spiegelman.<br>
                     <i>Beyond trees: classification with sparse pairwise dependencies.</i><br>
-                    To appear in Journal of Machine Learning Research (JMLR), 2020.<br>
+                    To appear in volume 21 of the Journal of Machine Learning Research (JMLR), 2020.<br>
                     [
                         <a href="https://arxiv.org/abs/1806.01993">paper</a>
                     ]
@@ -219,6 +224,8 @@
                         <a href="geodesic-knn/Minimax-optimal semi-supervised regression on unknown manifolds poster.pdf">poster</a>
                         |
                         <a href="geodesic-knn/geodesic-knn-slides-11.pdf">slides</a>
+                        |
+                        <a href="https://github.com/mosco/graphknn">code</a>
                     ]
                 </p>
 
@@ -266,8 +273,24 @@
         <div class="row">
             <div class="col-lg-12 col-lg-offset-0">
                 <h1>Learning shape manifolds</h1>
-                <h4> Documents </h4>
 
+                <p>
+                    Developing tools for high-dimensional regression of shape manifolds with a low-dimensional intrinsic dimensionality.
+                </p>
+                <div>
+                    <img src="proj/shape-spaces/spinning_alpha_1_pic.png" class="img-rounded" style="width: 19%; margin-left: auto; margin-right: auto;">
+                    <img src="proj/shape-spaces/spinning_alpha_2_pic.png" class="img-rounded" style="width: 19%; margin-left: auto; margin-right: auto;">
+                    <img src="proj/shape-spaces/spinning_alpha_3_pic.png" class="img-rounded" style="width: 19%; margin-left: auto; margin-right: auto;">
+                    <img src="proj/shape-spaces/spinning_alpha_4_pic.png" class="img-rounded" style="width: 19%; margin-left: auto; margin-right: auto;">
+                    <img src="proj/shape-spaces/spinning_alpha_5_pic.png" class="img-rounded" style="width: 19%; margin-left: auto; margin-right: auto;">
+                </div>
+
+                <h4> Documents </h4>
+                <p>
+                    Amit Moscovich, Joe Kileel, Nathan Zelesko, Amit Singer.<br>
+                    <i>Wasserstein diffusion maps for learning shape spaces.</i><br>
+                    In preparation for Journal of Fourier Analysis and Applications, special issue on Harmonic Analysis on Graphs.<br>
+                </p>
                 <p>
                     Nathan Zelesko, Amit Moscovich, Joe Kileel, Amit Singer.<br>
                     <i>Earthmover-based manifold learning for analyzing molecular conformation spaces.</i><br>
@@ -287,6 +310,22 @@
                         |
                         <a href="https://github.com/PrincetonUniversity/specvols">code</a>
                     ] 
+                </p>
+                <p>
+                    Amit Moscovich, Ariel Jaffe, Boaz Nadler.<br>
+                    <i>Minimax-optimal semi-supervised regression on unknown manifolds.</i><br>
+                    Proceedings of the 20th International Conference on Artificial Intelligence and Statistics (AISTATS), 2017.<br>
+                    [
+                        <a href="http://proceedings.mlr.press/v54/moscovich17a/moscovich17a.pdf">paper</a>
+                        |
+                        <a href="http://proceedings.mlr.press/v54/moscovich17a/moscovich17a-supp.pdf">supplementary</a>
+                        |
+                        <a href="geodesic-knn/Minimax-optimal semi-supervised regression on unknown manifolds poster.pdf">poster</a>
+                        |
+                        <a href="geodesic-knn/geodesic-knn-slides-11.pdf">slides</a>
+                        |
+                        <a href="https://github.com/mosco/graphknn">code</a>
+                    ]
                 </p>
             </div>
         </div>
@@ -344,97 +383,6 @@
                 <p>
                     A fast C++ implementation of the algorithms discussed in these papers:
                     <a href="https://github.com/mosco/crossing-probability">crossing-probability</a>
-                </p>
-            </div>
-        </div>
-    </section>
-    <section id="geodesicnn" class="container content-section">
-        <div class="row">
-            <div class="col-lg-12 col-lg-offset-0">
-                <h1 name="geodesicnn">Geodesic nearest neighbors</h1>
-                <p>
-                Consider nonparametric regression (e.g. <a href="https://en.wikipedia.org/wiki/Kernel_regression">Nadaraya-Watson</a>) in a high-dimensional metric space. In the general case, this typically requires an unreasonable number of labeled points due to the curse of dimensionality.
-                We make two simplifying assumptions:
-                    <ul>
-                        <li><p><b>Manifold assumption:</b> The data points are supported on (or near) a low-dimensional manifold.</p></li>
-                        <li><p><b>Semi-supervised data set:</b> In addition to the labeled points, we are given a <b>large</b> sample of unlabeled points</p></li>
-                    </ul>
-                </p>
-                <p>
-                    If there are many unlabeled points, then we can use them to estimate geodesic distances along the (unknown) manifold.
-                    This is done by connecting pairs of close points by a weighted edge with weight equal to their euclidean distance.
-                    Geodesic distances in the resulting graph approximate geodesic distances in the manifold.
-                    We propose to use this idea to apply standard nonparametric methods, but using the manifold distances instead of the euclidean distances. Thereby avoiding the curse of dimensionality.
-                </p>
-                <img src="img/isomap.jpg" class="img-rounded" style="margin-left: auto; margin-right: auto; display: block">
-                <p style="text-align: center">
-                    <small>Figure shamelessly stolen from <a href="http://isomap.stanford.edu/">IsoMap homepage</a></small>
-                </p>
-                <p>
-                    One way to think about manifold/graph-based semi-supervised methods, is to consider their Euclidean analogues.
-                    Consider the following table:
-                </p>
-
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Nonparametric regression method</th>
-                            <th>Analogous approach for graphs/manifolds</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Regression using orthogonal functions</td>
-                            <td><a href="https://stuff.mit.edu/afs/athena/course/9/9.520/www/spring08/Papers/Belkin-ML-04.pdf">Laplacian eigenvector regression</a></td>
-                        </tr>
-                        <tr>
-                            <td>Wavelet regression</td>
-                            <td><a href="https://web.stanford.edu/~gavish/documents/Haarlike_ICML_2010.pdf">Graph multiscale wavelet regression</a></td>
-                        </tr>
-                        <tr>
-                            <td>Nadaraya-Watson / K-nearest neighbor</td>
-                            <td><b>Geodesic nearest-neighbor</b></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <p>
-                    K nearest-neighbors and Nadaraya-watson regression are fundamental nonparametric regression method, but their manifold analogues have barely been studied.
-                    This was the initial motivation for this project. Results:
-                </p>
-                <h4> Key results </h4>
-                <p>
-                    <ul>
-                        <li><p><b>Minimax optimality:</b> given a sufficient number of unlabeled data points from an unknown manifold, the geodesic K nearest-neighbors regressor obtains the finite-sample minimax bound for a Lipschitz function on the manifold, as if it were completely specified.</p></li>
-                        <li><p><b>Good performance:</b> on manifold-structured signals.
-                        <li><p><b>Efficient computation:</b> regression and classification methods based on geodesic nearest neighbors can be efficiently computed, both for the transductive and the inductive cases of semi-supervised learning.
-                    </ul>
-                </p>
-                <h4> Documents </h4>
-                <p>
-                    Amit Moscovich, Ariel Jaffe, Boaz Nadler.<br>
-                    <i>Minimax-optimal semi-supervised regression on unknown manifolds.</i><br>
-                    Proceedings of the 20th International Conference on Artificial Intelligence and Statistics (AISTATS), 2017.<br>
-                    [
-                        <a href="http://proceedings.mlr.press/v54/moscovich17a/moscovich17a.pdf">paper</a>
-                        |
-                        <a href="http://proceedings.mlr.press/v54/moscovich17a/moscovich17a-supp.pdf">supplementary</a>
-                        |
-                        <a href="geodesic-knn/Minimax-optimal semi-supervised regression on unknown manifolds poster.pdf">poster</a>
-                        |
-                        <a href="geodesic-knn/geodesic-knn-slides-11.pdf">slides</a>
-                    ]
-                </p>
-                <img src="img/real_data_floor.png" class="img-rounded" style="width: 41.5%; margin-left: auto; margin-right: auto;">
-                <img src="img/SimEnvironment.png" class="img-rounded" style="width: 52%; margin-left: auto; margin-right: auto;">
-                <br>
-                <br>
-                <br>
-                <br>
-                <h4> Code </h4>
-                <p>
-                    Code for efficiently finding K-nearest-labeled vertices:
-                    <a href="https://github.com/mosco/graphknn">Graph KNN Python module</a>
                 </p>
             </div>
         </div>
