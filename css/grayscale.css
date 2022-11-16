@@ -8,7 +8,7 @@ body {
   height: 100%;
   font-family: "Lora", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #dbd9cc;
-  background-color: #202020;
+  background-color: rgb(32,32,32);
 
 }
 html {
@@ -128,7 +128,7 @@ a:focus {
   padding: 100px 0;
   text-align: center;
   color: white;
-  background: linear-gradient(to bottom, transparent 0%, black 100%), url(../img/jellyfish.jpeg) no-repeat bottom center scroll;
+  background: linear-gradient(to bottom,  rgba(32,32,32,0), rgba(32,32,32,1)), url(../img/jellyfish.jpeg) no-repeat bottom center scroll;
   background-color: black;
   -webkit-background-size: cover;
   -moz-background-size: cover;
