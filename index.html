@@ -41,48 +41,20 @@
 </head>
 
 <body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
-
-    <!-- Navigation -->
-    <nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
-                    Menu <i class="fa fa-bars"></i>
-                </button>
-                <a class="navbar-brand page-scroll" href="#page-top">
-                    <i class="fa fa-play-circle"></i> <span class="light">Home</span>
-                </a>
-            </div>
- 
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse navbar-right navbar-main-collapse">
-                <ul class="nav navbar-nav">
-                    <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
-                    <li class="hidden">
-                        <a href="#page-top"></a>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#about">About</a>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#publications">Publications</a>
-                    </li>
-                    <!-- <li>
-                         <a class="page-scroll" href="#teaching">Teaching</a>
-                    </li>
-                    -->
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+        <!-- <a class="navbar-brand" href="#">Amit Moscovich</a> -->
+        <div class="navbar-nav">
+            <a class="nav-item nav-link" href="#about">About</a>
+            <a class="nav-item nav-link" href="#team">Team</a>
+            <a class="nav-item nav-link" href="#publications">Publications</a>
         </div>
-        <!-- /.container -->
     </nav>
 
     <!-- Intro Header -->
     <header class="intro">
         <div class="intro-body">
             <div class="container">
-                <div class="row">
+                <div class="row justify-content-center">
                     <div class="col-md-8 col-md-offset-2">
                         <h1 class="brand-heading">Amit Moscovich</h1>
                         <p class="intro-text">Academic homepage</p>
@@ -122,7 +94,9 @@
                     </p>
                     <p>
                     <b> Video Presentations:</b><br>
-                        &bull; Broad overview of my research at INRIA's DataShape seminar:
+                        &bull; One-World Cryo-EM talk:
+                        <a href="https://www.youtube.com/watch?v=yBwQ32Y7pcM">Tools for heterogeneity in cryo-EM: manifold learning, disentanglement and optimal transport</a><br>
+                        &bull; Broad overview of my research (as of 3/2021) at INRIA's DataShape seminar:
                         <a href="https://www.youtube.com/watch?v=pVj-QZ4LWEo">Nonparametric estimation of high-dimensional shape spaces with applications to structural biology</a><br>
                         &bull; Presentation for 3rd year math students at Tel Aviv university (hebrew):
                         <a href="https://www.youtube.com/watch?v=z_UVlVjU9cA">Shape spaces, dimensionality reduction and product manifold factorization</a>
@@ -236,6 +210,18 @@
         <div class="row">
             <div class="col-lg-12 col-lg-offset-0">
                 <p>
+                    Amit Moscovich.<br>
+                    <i>Fast calculation of p-values for one-sided Kolmogorov-Smirnov type statistics.</i><br>
+                    Computational Statistics &amp; Data Analysis (2023).<br>
+                    [ 
+                    <a href="https://www.sciencedirect.com/science/article/abs/pii/S0167947323000804">paper</a>
+                        |
+                        <a href="https://github.com/mosco/crossing-probability">code</a>
+                        |
+                        <a href="https://twitter.com/AmitMoscovich/status/1656279442182766597">tweet</a>
+                    ]
+                </p>
+                <p>
                     Amit Moscovich, Saharon Rosset.<br>
                     <i>On the cross-validation bias due to unsupervised pre-processing.</i><br>
                     Journal of the Royal Statistical Society Series B (2022).<br>
@@ -295,18 +281,6 @@
                     ]
                 </p>
 
-                <p>
-                    Amit Moscovich.<br>
-                    <i>Fast calculation of p-values for one-sided Kolmogorov-Smirnov type statistics.</i><br>
-                    Submitted.<br>
-                    [ 
-                        <a href="https://arxiv.org/abs/2009.04954">preprint</a>
-                        |
-                        <a href="https://github.com/mosco/crossing-probability">code</a>
-                        |
-                        <a href="https://twitter.com/AmitMoscovich/status/1306099530685964288">tweet</a>
-                    ]
-                </p>
                 <p>
                     Yaniv Tenzer, Amit Moscovich, Mary-Frances Dorn, Boaz Nadler, Clifford Spiegelman.<br>
                     <i>Beyond trees: Classification with sparse pairwise dependencies.</i><br>
@@ -372,7 +346,7 @@
                 </p>
 
                 <p>
-                <img src="img/crossprob-illustration.svg" class="img-rounded" style="width: 70%; height: auto; margin-left: 0; margin-right: auto;"><br>
+                <img src="img/crossprob-illustration.svg" class="img-rounded" style="width: 50%; height: auto; margin-left: 0; margin-right: auto;"><br>
                     Amit Moscovich, Boaz Nadler.<br>
                     <i>Fast calculation of boundary crossing probabilities for Poisson processes.</i><br>
                     Statistics &amp; Probability Letters, 2017.<br>
@@ -383,8 +357,8 @@
                     ]
                 </p>
 
-                <img src="img/rare_weak_misdetection_leader_n1000.png" class="img-rounded" style="width: 50%; margin-left: auto; margin-right: auto;">
-                <img src="img/normal_scaling_ks_vs_ad_vs_mn_n100.svg" class="img-rounded" style="width: 47.4%; margin-left: auto; margin-right: auto;"><br><br>
+                <img src="img/rare_weak_misdetection_leader_n1000.png" class="img-rounded" style="width: 25%; margin-left: auto; margin-right: auto;">
+                <img src="img/normal_scaling_ks_vs_ad_vs_mn_n100.svg" class="img-rounded" style="width: 23.7%; margin-left: auto; margin-right: auto;"><br><br>
                 <p>
                     Amit Moscovich, Boaz Nadler, Clifford Spiegelman.<br>
                     <i>On the exact Berk-Jones statistics and their p-value calculation.</i><br>
