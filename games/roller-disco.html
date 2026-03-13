@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roller Disco!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f0f23; overflow: hidden; touch-action: none; -webkit-touch-callout: none; user-select: none; }
+  canvas { display: block; touch-action: none; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── Audio ──────────────────────────────────────────────
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playSound(type) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  if (type === 'hit') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, now);
+    osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.start(now);
+    osc.stop(now + 0.18);
+  } else if (type === 'perfect') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.06);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.start(now);
+    osc.stop(now + 0.25);
+    // harmony note
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1320, now + 0.03);
+    gain2.gain.setValueAtTime(0.15, now + 0.03);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc2.start(now + 0.03);
+    osc2.stop(now + 0.2);
+  } else if (type === 'miss') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.start(now);
+    osc.stop(now + 0.25);
+  } else if (type === 'wrongPress') {
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(120, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.start(now);
+    osc.stop(now + 0.12);
+  } else if (type === 'win') {
+    [0, 0.12, 0.24, 0.36, 0.48].forEach((t, i) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.type = 'sine';
+      o.frequency.setValueAtTime([523, 659, 784, 1047, 1319][i], now + t);
+      g.gain.setValueAtTime(0.2, now + t);
+      g.gain.exponentialRampToValueAtTime(0.001, now + t + 0.3);
+      o.start(now + t);
+      o.stop(now + t + 0.3);
+    });
+  }
+}
+
+// ── Constants ──────────────────────────────────────────
+const GAME_DURATION = 30; // seconds
+const BASE_SPEED = 2.85;
+const BEAT_WINDOW = 0.2;
+const PERFECT_WINDOW = 0.08;
+const STUN_MISS = 600;
+const STUN_WRONG = 300;
+
+const P1_COLOR = '#00e5ff';
+const P2_COLOR = '#ff4081';
+const TRACK_BG = '#1e1e3a';
+const BEAT_COLOR = '#ffeb3b';
+const HIT_COLOR = '#76ff03';
+const MISS_COLOR = '#ff1744';
+const DISCO = ['#ff006e','#fb5607','#ffbe0b','#06d6a0','#118ab2','#8338ec'];
+
+// ── State ──────────────────────────────────────────────
+const game = {
+  phase: 'waiting',
+  winner: null,
+  countdownTimer: 0,
+  gameTimer: 0,
+  time: 0,
+  winTimer: 0,
+  players: [],
+};
+
+function getDifficulty() {
+  const t = game.gameTimer / GAME_DURATION;
+  return {
+    speed: BASE_SPEED * (1 + t * 0.5),
+    gap: Math.max(0.35, 0.8 - t * 0.45),
+  };
+}
+
+function randomZoneArc() {
+  const t = game.gameTimer / GAME_DURATION;
+  // Wide variety: tiny to generous, max shrinks as game progresses
+  const min = Math.PI * 0.07;               // ~13° — blink and you miss it
+  const max = Math.PI * (0.40 - t * 0.18); // 72° → 40° over the game
+  return min + Math.random() * (max - min);
+}
+
+// Random gap between zones (seconds), shrinks as difficulty increases
+function randomCooldown() {
+  const t = game.gameTimer / GAME_DURATION;
+  const min = Math.max(0.3, 0.7 - t * 0.4);  // 0.7s → 0.3s
+  const max = Math.max(0.7, 2.0 - t * 1.0);  // 2.0s → 1.0s
+  return min + Math.random() * (max - min);
+}
+
+function createPlayer(id, key, color, name) {
+  return {
+    id, key, color, name,
+    angle: -Math.PI / 2,
+    score: 0,
+    stunTimer: 0,
+    combo: 0,
+    zones: [],
+    effects: [],
+    popups: [],
+    missFlash: 0,
+    zoneColorIdx: 0,
+    nextZoneGameTime: -1, // -1 = spawn ASAP; Infinity = waiting for cooldown
+  };
+}
+
+function spawnZone(player) {
+  const arc = randomZoneArc();
+  // Always spawn a bit ahead of the player's current position
+  const start = player.angle + Math.PI * 0.28;
+  player.zones.push({
+    startAngle: start,
+    endAngle: start + arc,
+    color: DISCO[player.zoneColorIdx++ % DISCO.length],
+    state: 'pending',   // 'pending' | 'hit' | 'missed'
+    spawnTime: game.time,
+  });
+}
+
+function resetGame() {
+  game.players = [
+    createPlayer(0, 'a', P1_COLOR, 'Player 1'),
+    createPlayer(1, 'l', P2_COLOR, 'Player 2'),
+  ];
+  game.winner = null;
+  game.gameTimer = 0;
+  game.winTimer = 0;
+}
+
+// ── Layout helper ─────────────────────────────────────
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+function isPortrait() {
+  return canvas.height > canvas.width * 1.2;
+}
+
+// ── Input ──────────────────────────────────────────────
+const justPressed = {};
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (e.repeat) return;
+  ensureAudio();
+  justPressed[k] = true;
+
+  if (game.phase === 'waiting') {
+    resetGame();
+    game.phase = 'countdown';
+    game.countdownTimer = 3000;
+  } else if (game.phase === 'won') {
+    if (k === 'enter') {
+      game.phase = 'waiting';
+      game.winTimer = 0;
+    }
+  }
+});
+
+// ── Touch input ───────────────────────────────────────
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  ensureAudio();
+
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const tx = touch.clientX;
+    const ty = touch.clientY;
+
+    if (game.phase === 'waiting') {
+      resetGame();
+      game.phase = 'countdown';
+      game.countdownTimer = 3000;
+      return;
+    } else if (game.phase === 'won') {
+      game.phase = 'waiting';
+      game.winTimer = 0;
+      return;
+    }
+
+    // Determine which player based on touch position
+    if (isPortrait()) {
+      // Top half = P1, bottom half = P2
+      if (ty < canvas.height / 2) {
+        justPressed['a'] = true;
+      } else {
+        justPressed['l'] = true;
+      }
+    } else {
+      // Left half = P1, right half = P2
+      if (tx < canvas.width / 2) {
+        justPressed['a'] = true;
+      } else {
+        justPressed['l'] = true;
+      }
+    }
+  }
+}, { passive: false });
+
+// Also handle mouse clicks for desktop testing
+canvas.addEventListener('mousedown', e => {
+  ensureAudio();
+
+  if (game.phase === 'waiting') {
+    resetGame();
+    game.phase = 'countdown';
+    game.countdownTimer = 3000;
+    return;
+  } else if (game.phase === 'won') {
+    game.phase = 'waiting';
+    game.winTimer = 0;
+    return;
+  }
+
+  if (isPortrait()) {
+    if (e.clientY < canvas.height / 2) {
+      justPressed['a'] = true;
+    } else {
+      justPressed['l'] = true;
+    }
+  } else {
+    if (e.clientX < canvas.width / 2) {
+      justPressed['a'] = true;
+    } else {
+      justPressed['l'] = true;
+    }
+  }
+});
+
+// ── Helpers ────────────────────────────────────────────
+function addParticles(player, angle, type, zoneColor = null) {
+  const n = type === 'perfect' ? 20 : type === 'hit' ? 14 : 6;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const spd = 40 + Math.random() * 110;
+    const baseColor = type === 'miss' || type === 'wrongPress'
+      ? MISS_COLOR
+      : (zoneColor || DISCO[Math.random() * 6 | 0]);
+    player.effects.push({
+      angle, type,
+      life: type === 'perfect' ? 1.0 : type === 'hit' ? 0.7 : 0.4,
+      maxLife: type === 'perfect' ? 1.0 : type === 'hit' ? 0.7 : 0.4,
+      vx: Math.cos(a) * spd,
+      vy: Math.sin(a) * spd,
+      size: type === 'perfect' ? 3 + Math.random() * 5 : type === 'hit' ? 2 + Math.random() * 4 : 2 + Math.random() * 2,
+      color: baseColor,
+    });
+  }
+}
+
+function addPopup(player, angle, text, color) {
+  player.popups.push({ angle, text, color, life: 1.0, y: 0 });
+}
+
+// ── Update ─────────────────────────────────────────────
+let lastTime = performance.now();
+function update(now) {
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  game.time += dt;
+
+  if (game.phase === 'countdown') {
+    game.countdownTimer -= dt * 1000;
+    if (game.countdownTimer <= 0) game.phase = 'playing';
+  }
+
+  if (game.phase === 'won') {
+    game.winTimer += dt;
+    if (game.winTimer >= 3) {
+      game.phase = 'waiting';
+      game.winTimer = 0;
+    }
+  }
+
+  if (game.phase === 'playing') {
+    game.gameTimer += dt;
+
+    // Time's up — determine winner
+    if (game.gameTimer >= GAME_DURATION) {
+      game.phase = 'won';
+      game.winTimer = 0;
+      const [p1, p2] = game.players;
+      if (p1.score > p2.score) game.winner = p1;
+      else if (p2.score > p1.score) game.winner = p2;
+      else game.winner = null; // tie
+      playSound('win');
+    }
+
+    game.players.forEach(player => {
+      const diff = getDifficulty();
+
+      // stun
+      if (player.stunTimer > 0) player.stunTimer = Math.max(0, player.stunTimer - dt * 1000);
+
+      // move
+      const speedMult = player.stunTimer > 0 ? 0.25 : 1.0;
+      player.angle += diff.speed * speedMult * dt;
+
+      // miss flash decay
+      if (player.missFlash > 0) player.missFlash = Math.max(0, player.missFlash - dt * 3);
+
+      // check missed zones (player passed end without pressing)
+      player.zones.forEach(zone => {
+        if (zone.state !== 'pending') return;
+        if (player.angle > zone.endAngle + 0.06) {
+          zone.state = 'missed';
+          player.combo = 0;
+          player.stunTimer = STUN_MISS;
+          player.missFlash = 1;
+          const mid = (zone.startAngle + zone.endAngle) / 2;
+          addParticles(player, mid, 'miss');
+          addPopup(player, mid, 'MISS', MISS_COLOR);
+          playSound('miss');
+          // Schedule next zone after cooldown
+          player.nextZoneGameTime = game.gameTimer + randomCooldown();
+        }
+      });
+
+      // input
+      if (justPressed[player.key]) {
+        handlePress(player);
+      }
+
+      // cleanup resolved zones that the player has passed
+      player.zones = player.zones.filter(z => {
+        return !(z.state !== 'pending' && (player.angle - z.endAngle) > 0.5);
+      });
+
+      // Spawn next zone — one at a time, on cooldown
+      const hasPending = player.zones.some(z => z.state === 'pending');
+      if (!hasPending) {
+        if (player.nextZoneGameTime < 0 || game.gameTimer >= player.nextZoneGameTime) {
+          spawnZone(player);
+          player.nextZoneGameTime = Infinity; // prevent re-spawning until scheduled
+        }
+      }
+
+      // effects
+      player.effects = player.effects.filter(e => { e.life -= dt; return e.life > 0; });
+      player.popups = player.popups.filter(p => { p.life -= dt * 1.5; p.y -= dt * 60; return p.life > 0; });
+    });
+  }
+
+  Object.keys(justPressed).forEach(k => delete justPressed[k]);
+  render();
+  requestAnimationFrame(update);
+}
+
+function handlePress(player) {
+  // Find a pending zone the skater is currently inside (with small grace on entry)
+  const GRACE = 0.06;
+  const activeZone = player.zones.find(z =>
+    z.state === 'pending' &&
+    player.angle >= z.startAngle - GRACE &&
+    player.angle <= z.endAngle + GRACE
+  );
+
+  if (activeZone) {
+    const center = (activeZone.startAngle + activeZone.endAngle) / 2;
+    const perfect = Math.abs(player.angle - center) < PERFECT_WINDOW;
+    activeZone.state = 'hit';
+    player.combo++;
+    const comboBonus = player.combo >= 5 ? 3 : player.combo >= 3 ? 2 : 1;
+    player.score += comboBonus;
+    const label = perfect ? 'PERFECT!' : comboBonus > 1 ? `+${comboBonus} (${player.combo}x)` : '+1';
+    const popColor = perfect ? '#ffffff' : comboBonus > 1 ? '#ffeb3b' : HIT_COLOR;
+    addParticles(player, center, perfect ? 'perfect' : 'hit', activeZone.color);
+    addPopup(player, center, label, popColor);
+    playSound(perfect ? 'perfect' : 'hit');
+    // Schedule next zone after cooldown
+    player.nextZoneGameTime = game.gameTimer + randomCooldown();
+  } else {
+    player.combo = 0;
+    player.stunTimer = STUN_WRONG;
+    player.missFlash = 0.6;
+    addParticles(player, player.angle, 'wrongPress');
+    playSound('wrongPress');
+  }
+}
+
+// ── Render ─────────────────────────────────────────────
+function render() {
+  const w = canvas.width, h = canvas.height;
+
+  // background
+  ctx.fillStyle = '#0f0f23';
+  ctx.fillRect(0, 0, w, h);
+
+  // subtle grid
+  ctx.strokeStyle = '#16163a';
+  ctx.lineWidth = 1;
+  const gridSize = 50;
+  for (let x = 0; x < w; x += gridSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += gridSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  // disco ball background glow
+  const ballX = w / 2, ballY = h * 0.08;
+  const grad = ctx.createRadialGradient(ballX, ballY, 0, ballX, ballY, Math.min(w, h) * 0.5);
+  grad.addColorStop(0, 'rgba(255,255,255,0.03)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // track sizing — adapt to portrait or landscape
+  const portrait = isPortrait();
+  let trackRadius, trackWidth;
+
+  if (portrait) {
+    trackRadius = Math.min(w * 0.36, h * 0.20);
+    trackWidth = Math.max(14, trackRadius * 0.17);
+  } else {
+    const halfW = w / 2;
+    trackRadius = Math.min(halfW * 0.36, h * 0.34);
+    trackWidth = Math.max(18, trackRadius * 0.17);
+  }
+
+  game.players.forEach((player, idx) => {
+    let cx, cy;
+    if (portrait) {
+      cx = w / 2;
+      cy = idx === 0 ? h * 0.28 : h * 0.72;
+    } else {
+      cx = idx === 0 ? w * 0.25 : w * 0.75;
+      cy = h * 0.48;
+    }
+    drawPlayerTrack(cx, cy, trackRadius, trackWidth, player);
+  });
+
+  // divider
+  ctx.save();
+  ctx.strokeStyle = '#2a2a5a';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([8, 12]);
+  if (portrait) {
+    ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Tap zone indicators (touch devices, during gameplay)
+  if (isTouchDevice && game.phase === 'playing') {
+    ctx.font = `bold ${Math.max(14, Math.min(w, h) * 0.03)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (portrait) {
+      // Top half hint
+      ctx.fillStyle = P1_COLOR + '12';
+      ctx.fillRect(0, 0, w, h / 2);
+      ctx.fillStyle = P1_COLOR + '30';
+      ctx.fillText('TAP', w * 0.9, h * 0.28);
+      // Bottom half hint
+      ctx.fillStyle = P2_COLOR + '12';
+      ctx.fillRect(0, h / 2, w, h / 2);
+      ctx.fillStyle = P2_COLOR + '30';
+      ctx.fillText('TAP', w * 0.9, h * 0.72);
+    } else {
+      // Left half hint
+      ctx.fillStyle = P1_COLOR + '08';
+      ctx.fillRect(0, 0, w / 2, h);
+      ctx.fillStyle = P1_COLOR + '25';
+      ctx.fillText('TAP', w * 0.25, h * 0.92);
+      // Right half hint
+      ctx.fillStyle = P2_COLOR + '08';
+      ctx.fillRect(w / 2, 0, w / 2, h);
+      ctx.fillStyle = P2_COLOR + '25';
+      ctx.fillText('TAP', w * 0.75, h * 0.92);
+    }
+  }
+
+  // title
+  ctx.fillStyle = '#ffffff18';
+  ctx.font = 'bold 14px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ROLLER DISCO', w / 2, 22);
+
+  // timer (during playing phase)
+  if (game.phase === 'playing') {
+    const remaining = Math.max(0, Math.ceil(GAME_DURATION - game.gameTimer));
+    const urgent = remaining <= 5;
+    ctx.fillStyle = urgent ? '#ff4081' : '#ffffff80';
+    ctx.font = `bold ${urgent ? 36 : 28}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.fillText(remaining, w / 2, h * 0.06 + 40);
+
+    // timer bar
+    const barW = 120, barH = 4;
+    const barX = w / 2 - barW / 2, barY = h * 0.06 + 52;
+    ctx.fillStyle = '#ffffff15';
+    ctx.fillRect(barX, barY, barW, barH);
+    const progress = game.gameTimer / GAME_DURATION;
+    ctx.fillStyle = urgent ? '#ff408180' : '#ffffff40';
+    ctx.fillRect(barX, barY, barW * (1 - progress), barH);
+  }
+
+  // overlays
+  if (game.phase === 'waiting') drawWaiting(w, h);
+  else if (game.phase === 'countdown') drawCountdown(w, h);
+  else if (game.phase === 'won') drawWin(w, h);
+}
+
+function drawPlayerTrack(cx, cy, radius, tw, player) {
+  // track ring
+  ctx.strokeStyle = TRACK_BG;
+  ctx.lineWidth = tw;
+  ctx.lineCap = 'butt';
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // outer glow
+  ctx.strokeStyle = player.color + '10';
+  ctx.lineWidth = tw + 6;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // direction arrow indicators along track
+  ctx.fillStyle = '#ffffff10';
+  ctx.font = `${tw * 0.5}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + game.time * 0.3;
+    const ax = cx + Math.cos(a) * radius;
+    const ay = cy + Math.sin(a) * radius;
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(a + Math.PI / 2);
+    ctx.fillText('>', 0, 0);
+    ctx.restore();
+  }
+
+  // dance floor zones
+  player.zones.forEach(zone => drawDanceZone(cx, cy, radius, tw, zone, player));
+
+  // particles
+  player.effects.forEach(e => {
+    const baseX = cx + Math.cos(e.angle) * radius;
+    const baseY = cy + Math.sin(e.angle) * radius;
+    const progress = 1 - e.life / e.maxLife;
+    const ex = baseX + e.vx * progress;
+    const ey = baseY + e.vy * progress;
+    ctx.globalAlpha = e.life / e.maxLife;
+    ctx.fillStyle = e.color;
+    ctx.beginPath();
+    ctx.arc(ex, ey, e.size * (1 - progress * 0.3), 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // popups
+  player.popups.forEach(p => {
+    const px = cx + Math.cos(p.angle) * (radius - tw - 15 + p.y);
+    const py = cy + Math.sin(p.angle) * (radius - tw - 15 + p.y);
+    ctx.globalAlpha = Math.min(1, p.life * 2);
+    ctx.fillStyle = p.color;
+    ctx.font = `bold ${tw * 0.65}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.text, px, py);
+  });
+  ctx.globalAlpha = 1;
+
+  // skater
+  drawSkater(cx, cy, radius, tw, player);
+
+  // score in center
+  ctx.fillStyle = player.color;
+  ctx.font = `bold ${Math.max(28, radius * 0.28)}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(player.score, cx, cy - 4);
+
+  ctx.fillStyle = '#ffffff40';
+  ctx.font = `${Math.max(12, radius * 0.1)}px Arial`;
+  ctx.fillText('pts', cx, cy + radius * 0.18);
+
+  // combo
+  if (player.combo > 2) {
+    ctx.fillStyle = BEAT_COLOR;
+    ctx.font = `bold ${Math.max(13, radius * 0.1)}px Arial`;
+    ctx.fillText(`${player.combo}x combo`, cx, cy - radius * 0.22);
+  }
+
+  // key hint
+  ctx.fillStyle = '#ffffff30';
+  ctx.font = `${Math.max(13, radius * 0.09)}px Arial`;
+  ctx.fillText(`[ ${player.key.toUpperCase()} ]`, cx, cy + radius + tw + 28);
+
+  // player name
+  ctx.fillStyle = player.color;
+  ctx.font = `bold ${Math.max(15, radius * 0.11)}px Arial`;
+  ctx.fillText(player.name, cx, cy - radius - tw - 16);
+
+  // miss flash
+  if (player.missFlash > 0) {
+    ctx.fillStyle = `rgba(255,23,68,${player.missFlash * 0.08})`;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + tw + 10, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawDanceZone(cx, cy, radius, tw, zone, player) {
+  const fadeIn = Math.min(1, (game.time - zone.spawnTime) * 4);
+  const col = zone.color;
+
+  if (zone.state === 'pending') {
+    const inside = player.angle >= zone.startAngle && player.angle <= zone.endAngle;
+    const dist = zone.startAngle - player.angle; // positive = zone is ahead
+    const approaching = dist > 0 && dist < Math.PI * 0.6;
+    const pulse = inside
+      ? 1.0
+      : approaching
+        ? 0.6 + 0.4 * Math.sin(game.time * 7)
+        : 0.35 + 0.15 * Math.sin(game.time * 2.5);
+
+    // outer bloom
+    ctx.strokeStyle = col;
+    ctx.globalAlpha = fadeIn * pulse * 0.18;
+    ctx.lineWidth = tw * 1.8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, zone.startAngle, zone.endAngle);
+    ctx.stroke();
+
+    // main solid arc
+    ctx.strokeStyle = col;
+    ctx.globalAlpha = fadeIn * pulse * 0.9;
+    ctx.lineWidth = tw * 0.88;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, zone.startAngle, zone.endAngle);
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+
+    // bright dot at zone entry (leading edge)
+    const ex = cx + Math.cos(zone.startAngle) * radius;
+    const ey = cy + Math.sin(zone.startAngle) * radius;
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = fadeIn * pulse * 0.9;
+    ctx.beginPath();
+    ctx.arc(ex, ey, tw * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+  } else if (zone.state === 'hit') {
+    // brief green wash, fades fast
+    ctx.strokeStyle = HIT_COLOR;
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = tw * 0.8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, zone.startAngle, zone.endAngle);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+  } else {
+    // missed — dim grey ghost
+    ctx.strokeStyle = '#44445a';
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = tw * 0.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, zone.startAngle, zone.endAngle);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ── Sloth body drawing (reusable for both game and win screen) ──
+// Assumes ctx is already translated to the center position.
+// s = scale factor (same role as tw*0.5 in drawSkater)
+function drawSlothBody(s) {
+  // ── Fluffy body ──
+  // Outer fluffy edge (light cream puffs around silhouette)
+  ctx.fillStyle = '#d8c8a8';
+  const fluffAngles = [0, 0.7, 1.4, 2.1, 2.8, 3.5, 4.2, 4.9, 5.6];
+  fluffAngles.forEach(a => {
+    const fx = Math.cos(a) * s * 0.45;
+    const fy = s * 0.15 + Math.sin(a) * s * 0.52;
+    ctx.beginPath();
+    ctx.arc(fx, fy, s * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Main belly (light creamy tan)
+  ctx.fillStyle = '#deccae';
+  ctx.beginPath();
+  ctx.ellipse(0, s * 0.18, s * 0.46, s * 0.56, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner belly highlight
+  ctx.fillStyle = '#e8dcc0';
+  ctx.beginPath();
+  ctx.ellipse(0, s * 0.22, s * 0.3, s * 0.38, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Darker fur stripe on back
+  ctx.fillStyle = '#a89470';
+  ctx.beginPath();
+  ctx.ellipse(0, s * 0.05, s * 0.2, s * 0.45, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Cover with belly again in front
+  ctx.fillStyle = '#deccae';
+  ctx.beginPath();
+  ctx.ellipse(0, s * 0.25, s * 0.34, s * 0.36, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Long arms (raised up for balance!) ──
+  ctx.strokeStyle = '#b8a480';
+  ctx.lineWidth = s * 0.2;
+  ctx.lineCap = 'round';
+  // Left arm — up and out
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.35, -s * 0.05);
+  ctx.quadraticCurveTo(-s * 1.0, -s * 0.15, -s * 0.82, s * 0.65);
+  ctx.stroke();
+  // Right arm — up and out
+  ctx.beginPath();
+  ctx.moveTo(s * 0.35, -s * 0.05);
+  ctx.quadraticCurveTo(s * 1.0, -s * 0.15, s * 0.82, s * 0.65);
+  ctx.stroke();
+
+  // Claws! (3 per hand — long curved)
+  ctx.strokeStyle = '#3d2a10';
+  ctx.lineWidth = s * 0.055;
+  ctx.lineCap = 'round';
+  [[-0.72, 0.68], [-0.84, 0.62], [-0.92, 0.52]].forEach(([ax, ay]) => {
+    ctx.beginPath();
+    ctx.moveTo(s * ax, s * ay);
+    ctx.quadraticCurveTo(s * (ax - 0.08), s * (ay + 0.14), s * (ax - 0.16), s * (ay + 0.22));
+    ctx.stroke();
+  });
+  [[0.72, 0.68], [0.84, 0.62], [0.92, 0.52]].forEach(([ax, ay]) => {
+    ctx.beginPath();
+    ctx.moveTo(s * ax, s * ay);
+    ctx.quadraticCurveTo(s * (ax + 0.08), s * (ay + 0.14), s * (ax + 0.16), s * (ay + 0.22));
+    ctx.stroke();
+  });
+
+  // ── Big round head ──
+  // Fluffy head edge
+  ctx.fillStyle = '#d0bc98';
+  for (let a = 0; a < Math.PI * 2; a += 0.6) {
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * s * 0.42, -s * 0.52 + Math.sin(a) * s * 0.42, s * 0.16, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Head main
+  ctx.fillStyle = '#d4c0a0';
+  ctx.beginPath();
+  ctx.arc(0, -s * 0.52, s * 0.46, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ear tufts (fluffy)
+  ctx.fillStyle = '#c0aa80';
+  ctx.beginPath();
+  ctx.arc(-s * 0.42, -s * 0.72, s * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.42, -s * 0.72, s * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  // Inner ear
+  ctx.fillStyle = '#e0cca8';
+  ctx.beginPath();
+  ctx.arc(-s * 0.42, -s * 0.72, s * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.42, -s * 0.72, s * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Face (lighter cream) ──
+  ctx.fillStyle = '#efe0c8';
+  ctx.beginPath();
+  ctx.ellipse(0, -s * 0.48, s * 0.34, s * 0.36, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Dark eye patches (signature sloth markings) ──
+  ctx.fillStyle = '#5c4020';
+  // Left patch — teardrop-ish
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.16, -s * 0.54, s * 0.16, s * 0.18, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+  // Right patch
+  ctx.beginPath();
+  ctx.ellipse(s * 0.16, -s * 0.54, s * 0.16, s * 0.18, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── BIG round eyes (wide open, cute baby sloth!) ──
+  // Eye whites — large and round
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(-s * 0.16, -s * 0.54, s * 0.13, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.16, -s * 0.54, s * 0.13, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big dark pupils
+  ctx.fillStyle = '#0d0800';
+  ctx.beginPath();
+  ctx.arc(-s * 0.15, -s * 0.53, s * 0.095, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.17, -s * 0.53, s * 0.095, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big eye highlights (sparkly!)
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(-s * 0.12, -s * 0.57, s * 0.045, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.2, -s * 0.57, s * 0.045, 0, Math.PI * 2);
+  ctx.fill();
+  // Smaller secondary highlight
+  ctx.beginPath();
+  ctx.arc(-s * 0.19, -s * 0.5, s * 0.025, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.13, -s * 0.5, s * 0.025, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Cute button nose (pinkish) ──
+  ctx.fillStyle = '#6b4030';
+  ctx.beginPath();
+  ctx.ellipse(0, -s * 0.4, s * 0.065, s * 0.048, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Nose highlight
+  ctx.fillStyle = '#8b6050';
+  ctx.beginPath();
+  ctx.ellipse(-s * 0.015, -s * 0.41, s * 0.025, s * 0.02, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Happy smile ──
+  ctx.strokeStyle = '#5a3a20';
+  ctx.lineWidth = s * 0.04;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, -s * 0.35, s * 0.1, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // Rosy cheeks
+  ctx.fillStyle = 'rgba(255, 160, 120, 0.2)';
+  ctx.beginPath();
+  ctx.arc(-s * 0.28, -s * 0.42, s * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s * 0.28, -s * 0.42, s * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawSkater(cx, cy, radius, tw, player) {
+  const x = cx + Math.cos(player.angle) * radius;
+  const y = cy + Math.sin(player.angle) * radius;
+  const s = tw * 0.5;
+
+  // trail
+  for (let i = 1; i <= 5; i++) {
+    const ta = player.angle - i * 0.035;
+    const tx = cx + Math.cos(ta) * radius;
+    const ty = cy + Math.sin(ta) * radius;
+    ctx.globalAlpha = 0.13 - i * 0.022;
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.arc(tx, ty, s * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  const wobbleX = player.stunTimer > 0 ? Math.sin(game.time * 25) * 3 : 0;
+  const wobbleY = player.stunTimer > 0 ? Math.cos(game.time * 30) * 2 : 0;
+
+  ctx.save();
+  ctx.translate(x + wobbleX, y + wobbleY);
+
+  // glow ring (player color)
+  ctx.shadowColor = player.color;
+  ctx.shadowBlur = 14;
+  ctx.strokeStyle = player.color;
+  ctx.lineWidth = s * 0.12;
+  ctx.beginPath();
+  ctx.arc(0, 0, s * 1.05, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // ── Sloth body ──
+  drawSlothBody(s);
+
+  // Stun stars
+  if (player.stunTimer > 0) {
+    for (let i = 0; i < 3; i++) {
+      const sa = game.time * 5 + (i / 3) * Math.PI * 2;
+      ctx.fillStyle = '#ffeb3b';
+      ctx.font = `${s * 0.6}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('★', Math.cos(sa) * (s * 1.4), Math.sin(sa) * (s * 1.4));
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawWaiting(w, h) {
+  ctx.fillStyle = 'rgba(15,15,35,0.88)';
+  ctx.fillRect(0, 0, w, h);
+
+  const titleSize = Math.min(w * 0.055, 46);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${titleSize}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.fillText('ROLLER DISCO', w / 2, h * 0.3);
+
+  ctx.fillStyle = '#ffffff60';
+  ctx.font = `${titleSize * 0.4}px Arial`;
+  ctx.fillText('A 2-player rhythm skating game', w / 2, h * 0.37);
+
+  const infoSize = Math.min(w * 0.025, 20);
+
+  const portrait = isPortrait();
+
+  ctx.fillStyle = P1_COLOR;
+  ctx.font = `bold ${infoSize}px Arial`;
+  if (isTouchDevice) {
+    ctx.fillText(portrait ? 'Player 1:  Tap top' : 'Player 1:  Tap left', w / 2, h * 0.48);
+    ctx.fillStyle = P2_COLOR;
+    ctx.fillText(portrait ? 'Player 2:  Tap bottom' : 'Player 2:  Tap right', w / 2, h * 0.54);
+  } else {
+    ctx.fillText('Player 1:  A', w / 2, h * 0.48);
+    ctx.fillStyle = P2_COLOR;
+    ctx.fillText('Player 2:  L', w / 2, h * 0.54);
+  }
+
+  if (isTouchDevice) {
+    ctx.fillStyle = '#ffffff30';
+    ctx.font = `${infoSize * 0.7}px Arial`;
+    ctx.fillText('Keyboard: A / L', w / 2, h * 0.59);
+  }
+
+  ctx.fillStyle = '#ffffff50';
+  ctx.font = `${infoSize * 0.85}px Arial`;
+  ctx.fillText('Tap when your sloth is inside a coloured zone', w / 2, h * 0.67);
+  ctx.fillText(`${GAME_DURATION} seconds — highest score wins!`, w / 2, h * 0.72);
+  ctx.fillText('Build combos for bonus points!', w / 2, h * 0.77);
+
+  if (Math.sin(game.time * 3) > 0) {
+    ctx.fillStyle = '#ffffffcc';
+    ctx.font = `bold ${infoSize}px Arial`;
+    ctx.fillText(isTouchDevice ? 'Tap to start' : 'Press any key to start', w / 2, h * 0.85);
+  }
+}
+
+function drawCountdown(w, h) {
+  const count = Math.ceil(game.countdownTimer / 1000);
+  const frac = (game.countdownTimer % 1000) / 1000;
+
+  ctx.fillStyle = `rgba(15,15,35,${0.4 + frac * 0.3})`;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  const scale = 0.8 + frac * 0.6;
+  ctx.scale(scale, scale);
+  ctx.globalAlpha = Math.min(1, frac * 1.5);
+  ctx.fillStyle = count > 0 ? '#ffffff' : HIT_COLOR;
+  ctx.font = 'bold 72px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(count > 0 ? count : 'GO!', 0, 0);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function drawWin(w, h) {
+  const T = game.time;
+
+  // Dark backdrop
+  ctx.fillStyle = 'rgba(10,8,28,0.82)';
+  ctx.fillRect(0, 0, w, h);
+
+  // ── Rainbows ──
+  const RAINBOW = ['#ff0000','#ff7700','#ffee00','#00cc44','#2255ff','#aa00ff'];
+  const rainbowSets = [
+    [w * 0.5,  h * 1.05, Math.min(w, h) * 0.65],
+    [w * 0.15, h * 0.95, Math.min(w, h) * 0.32],
+    [w * 0.85, h * 0.95, Math.min(w, h) * 0.30],
+  ];
+  rainbowSets.forEach(([rx, ry, baseR]) => {
+    RAINBOW.forEach((col, i) => {
+      const r = baseR - i * baseR * 0.07;
+      const pulse = 0.55 + 0.25 * Math.sin(T * 2.5 + i * 0.4);
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = pulse * 0.6;
+      ctx.lineWidth = Math.max(3, baseR * 0.055);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(rx, ry, r, Math.PI, 0);
+      ctx.stroke();
+    });
+  });
+  ctx.globalAlpha = 1;
+
+  // ── Heavy confetti ──
+  for (let i = 0; i < 80; i++) {
+    const seed = i * 5.93;
+    const speed = 0.18 + (seed % 0.25);
+    const cx2 = (Math.sin(seed * 2.1) * 0.48 + 0.5) * w;
+    const cy2 = ((seed * 0.08 + T * speed) % 1.3 - 0.15) * h;
+    const size = 4 + (seed % 7);
+    ctx.fillStyle = DISCO[i % DISCO.length];
+    ctx.globalAlpha = 0.85;
+    ctx.save();
+    ctx.translate(cx2, cy2);
+    ctx.rotate(T * (1.5 + seed % 2) + seed);
+    const shape = i % 3;
+    if (shape === 0) {
+      ctx.fillRect(-size, -size * 0.45, size * 2, size * 0.9);
+    } else if (shape === 1) {
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(0, -size); ctx.lineTo(size * 0.9, size * 0.7); ctx.lineTo(-size * 0.9, size * 0.7);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+
+  // ── Floating unicorns 🦄 ──
+  const emojiSize = Math.min(w * 0.065, 54);
+  ctx.font = `${emojiSize}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < 5; i++) {
+    const t2 = T * 0.9 + i * 1.35;
+    const ux = ((Math.sin(t2 * 1.1 + i * 0.8) * 0.42) + 0.5) * w;
+    const uy = h * 0.62 + Math.sin(t2 * 2.1 + i) * h * 0.12;
+    ctx.save();
+    ctx.translate(ux, uy);
+    ctx.rotate(Math.sin(t2 * 0.7) * 0.25);
+    ctx.fillText('🦄', 0, 0);
+    ctx.restore();
+  }
+
+  // ── Big drawn sloths tumbling across the screen ──
+  const slothS = Math.min(w * 0.038, h * 0.055, 58);
+  for (let i = 0; i < 4; i++) {
+    const t2 = T * 0.6 + i * 1.8;
+    const sx = ((Math.sin(t2 * 0.85 + i * 1.5) * 0.38) + 0.5) * w;
+    const sy = h * 0.80 + Math.sin(t2 * 1.9 + i * 0.6) * h * 0.08;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(T * (0.8 + i * 0.3));
+    drawSlothBody(slothS);
+    ctx.restore();
+  }
+
+  // ── Sparkle stars ──
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 20; i++) {
+    const seed = i * 11.7;
+    const sx = (Math.sin(seed * 3) * 0.5 + 0.5) * w;
+    const sy = (Math.cos(seed * 2.3) * 0.4 + 0.5) * h;
+    const twinkle = Math.sin(T * 4 + seed) > 0.3 ? 1 : 0;
+    if (!twinkle) continue;
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(T * 5 + seed);
+    ctx.font = `${12 + (seed % 10)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✦', sx, sy);
+  }
+  ctx.globalAlpha = 1;
+
+  // ── Winner text ──
+  const winnerName = game.winner ? game.winner.name : null;
+  const winColor = game.winner ? game.winner.color : '#ffffff';
+  const titleSize = Math.min(w * 0.058, 50);
+
+  // Glow
+  ctx.shadowColor = winColor;
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = winColor;
+  ctx.font = `bold ${titleSize}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(winnerName ? `🎉 ${winnerName} Wins! 🎉` : "🎉 It's a Tie! 🎉", w / 2, h * 0.33);
+  ctx.shadowBlur = 0;
+
+  // Score
+  ctx.fillStyle = '#ffffffaa';
+  ctx.font = `${Math.min(w * 0.03, 26)}px Arial`;
+  const p1 = game.players[0], p2 = game.players[1];
+  ctx.fillText(`${p1.score}  –  ${p2.score}`, w / 2, h * 0.43);
+
+  // ── Countdown bar & restart prompt ──
+  const winFrac = Math.min(1, game.winTimer / 3);
+  const barW = 220, barH = 6;
+  const barX = w / 2 - barW / 2, barY = h * 0.49;
+  ctx.fillStyle = '#ffffff15';
+  ctx.fillRect(barX, barY, barW, barH);
+  ctx.fillStyle = winColor + 'aa';
+  ctx.fillRect(barX, barY, barW * winFrac, barH);
+
+  const secsLeft = Math.max(0, Math.ceil(3 - game.winTimer));
+  ctx.fillStyle = '#ffffffcc';
+  ctx.font = `bold ${Math.min(w * 0.022, 19)}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(isTouchDevice ? `Tap to play again  (auto in ${secsLeft}s)` : `Press ENTER to play again  (auto in ${secsLeft}s)`, w / 2, h * 0.55);
+}
+
+// ── Start ──────────────────────────────────────────────
+requestAnimationFrame(update);
+</script>
+</body>
+</html>
